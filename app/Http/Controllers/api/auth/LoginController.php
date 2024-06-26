@@ -17,6 +17,8 @@ class LoginController extends Controller
      */
     public function __invoke(LoginRequest $request, AuthService $authService): JsonResponse
     {
-        return $authService->login($request);
+        return response()->json([
+            'token' => $authService->login($request)
+        ]);
     }
 }

@@ -9,7 +9,6 @@
         "laravel/framework": "^11.9",
         "laravel/passport": "^12.0",
         "laravel/tinker": "^2.9",
-        "paysera/lib-rest-client-common": "^2.7",
         "paysera/lib-wallet-transfer-rest-client": "^0.3.0",
         "psr/http-message": "^1.0"
     },

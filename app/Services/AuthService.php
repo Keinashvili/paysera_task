@@ -4,9 +4,13 @@ declare(strict_types=1);
 
 namespace App\Services;
 
-use App\Exceptions\{LoginException, UnauthorizedUserException};
+use App\Http\Requests\LoginRequest;
+use App\Http\Requests\RegisterRequest;
+use App\Http\Requests\UpdateUserRequest;
+use Exception;
+use App\Exceptions\{LoginException};
 use App\Models\User;
-use Illuminate\Http\{JsonResponse, Response};
+use Illuminate\Http\{JsonResponse, Request};
 use Illuminate\Support\Facades\{DB, Hash};
 
 class AuthService
@@ -14,30 +18,22 @@ class AuthService
     /**
      * @throws LoginException
      */
-    public function login($request): JsonResponse
+    public function login(LoginRequest $request): string
     {
         $user = User::where('email', $request->email)->first();
 
-        if ($user &&
-            auth()->attempt([
-                'email' => $request->email,
-                'password' => $request->password,
-            ]) &&
-            Hash::check($request->password, $user->password)) {
-
-            auth()->login($user);
-
-            return response()->json([
-                'token' => $user->createToken('user')->accessToken,
-            ]);
+        if (!$user || !Hash::check($request->password, $user->password)) {
+            throw new LoginException('Invalid credentials');
         }
 
-        throw new LoginException();
+        return $user->createToken('user')->accessToken;
     }
 
-    public function register($request): JsonResponse
+    public function register(RegisterRequest $request): string
     {
-        return DB::transaction(function () use ($request) {
+        DB::beginTransaction();
+
+        try {
             $user = User::create([
                 'email' => $request->email,
                 'password' => Hash::make($request->password),
@@ -46,44 +42,24 @@ class AuthService
 
             $user->cart()->create();
 
-            $token = $user->createToken('Laravel Password Grant Client')->accessToken;
+            $token = $user->createToken('access')->accessToken;
 
-            return response()->json([
-                'token' => $token,
-            ]);
-        });
-    }
+            DB::commit();
 
-    /**
-     * @throws UnauthorizedUserException
-     */
-    public function logout($request): Response
-    {
-        $user = $request->user();
+            return $token;
+        } catch (Exception $exception) {
+            DB::rollBack();
 
-        if ($user) {
-            $accessToken = $user->token();
-
-            DB::table('oauth_refresh_tokens')
-                ->where('access_token_id', $accessToken->id)
-                ->update(['revoked' => true]);
-
-            $accessToken->revoke();
-
-            session()->regenerateToken();
-            session()->flush();
-
-            $user->update([
-                'remember_token' => null,
-            ]);
-
-            return response()->noContent(200);
+            throw $exception;
         }
-
-        throw new UnauthorizedUserException();
     }
 
-    public function update($request): Response
+    public function logout(Request $request): void
+    {
+        $request->user()->token()->revoke();
+    }
+
+    public function update(UpdateUserRequest $request): void
     {
         $user = $request->user();
 
@@ -95,7 +71,5 @@ class AuthService
         $user->email = $request->email;
 
         $user->save();
-
-        return response()->noContent();
     }
 }

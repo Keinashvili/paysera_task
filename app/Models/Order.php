@@ -12,13 +12,11 @@ use Illuminate\Support\Collection;
 /**
  * @property-read Collection $products
  */
-class Cart extends Model
+class Order extends Model
 {
     use HasFactory;
 
-    protected $table = 'carts';
-
-    public $timestamps = false;
+    protected $table = 'orders';
 
     protected $fillable = [
         'user_id',
@@ -31,6 +29,6 @@ class Cart extends Model
 
     public function products(): BelongsToMany
     {
-        return $this->belongsToMany(Product::class, 'cart_products');
+        return $this->belongsToMany(Product::class, 'product_order', 'id', 'product_id');
     }
 }

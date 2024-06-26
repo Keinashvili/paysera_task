@@ -4,17 +4,15 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\api\auth;
 
-use App\Exceptions\UnauthorizedUserException;
 use App\Services\AuthService;
-use Illuminate\Http\{Request, Response};
+use Illuminate\Http\{JsonResponse, Request};
 
 class LogoutController
 {
-    /**
-     * @throws UnauthorizedUserException
-     */
-    public function __invoke(Request $request, AuthService $authService): Response
+    public function __invoke(Request $request, AuthService $authService): JsonResponse
     {
-        return $authService->logout($request);
+        $authService->logout($request);
+
+        return response()->json();
     }
 }

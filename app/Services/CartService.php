@@ -4,20 +4,22 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Http\Requests\CartQuantityRequest;
+use App\Http\Requests\StoreCartRequest;
 use App\Models\CartProduct;
 use App\Repositories\CartRepositoryInterface;
-use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
 
 readonly class CartService
 {
     public function __construct(
         private CartRepositoryInterface $cartRepository,
-    ){}
+    ) {
+    }
 
-    public function store($request)
+    public function store(StoreCartRequest $request): void
     {
-        return DB::transaction(function () use ($request) {
+        DB::transaction(function () use ($request) {
             $user = $request->user();
 
             $cartProduct = CartProduct::where('product_id', $request->product_id)
@@ -28,7 +30,7 @@ readonly class CartService
                     'quantity' => $cartProduct->quantity + 1,
                 ]);
 
-                return response()->noContent(201);
+                return;
             }
 
             CartProduct::create([
@@ -37,28 +39,22 @@ readonly class CartService
                 'cart_id' => $user->cart->id,
                 'quantity' => 1,
             ]);
-
-            return response()->noContent(201);
         });
     }
 
-    public function updateQuantity($productId, $quantity): Response
+    public function updateQuantity($productId, CartQuantityRequest $request): void
     {
         $cartProduct = $this->cartRepository->getById($productId);
 
         $cartProduct->update([
-            'quantity' => $quantity,
+            'quantity' => $request->quantity,
         ]);
-
-        return response()->noContent();
     }
 
-    public function delete($id): Response
+    public function delete($id): void
     {
         $cartProduct = $this->cartRepository->getById($id);
 
         $cartProduct->delete();
-
-        return response()->noContent(200);
     }
 }

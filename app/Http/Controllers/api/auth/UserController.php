@@ -7,7 +7,7 @@ namespace App\Http\Controllers\api\auth;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\UpdateUserRequest;
 use App\Services\AuthService;
-use Illuminate\Http\{Request, Response};
+use Illuminate\Http\{JsonResponse, Request, Response};
 
 class UserController extends Controller
 {
@@ -16,8 +16,10 @@ class UserController extends Controller
         return $request->user();
     }
 
-    public function update(UpdateUserRequest $request, AuthService $authService): Response
+    public function update(UpdateUserRequest $request, AuthService $authService): JsonResponse
     {
-        return $authService->update($request);
+        $authService->update($request);
+
+        return response()->json();
     }
 }

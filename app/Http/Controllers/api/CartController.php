@@ -16,7 +16,8 @@ class CartController extends Controller
 {
     public function __construct(
         private readonly CartService $cartService,
-    ){}
+    ) {
+    }
 
     public function index(CartRepositoryInterface $cartRepository): AnonymousResourceCollection
     {
@@ -25,21 +26,27 @@ class CartController extends Controller
         );
     }
 
-    public function store(StoreCartRequest $request)
+    public function store(StoreCartRequest $request): Response
     {
-        return $this->cartService->store($request);
+        $this->cartService->store($request);
+
+        return response()->noContent(201);
     }
 
-    public function changeQuantity($id, CartQuantityRequest $request):  Response
+    public function changeQuantity($id, CartQuantityRequest $request): Response
     {
-        return $this->cartService->updateQuantity(
+        $this->cartService->updateQuantity(
             $id,
-            $request->quantity,
+            $request,
         );
+
+        return response()->noContent();
     }
 
     public function destroy($id): Response
     {
-        return $this->cartService->delete($id);
+        $this->cartService->delete($id);
+
+        return response()->noContent(200);
     }
 }

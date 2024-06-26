@@ -8,11 +8,17 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\RegisterRequest;
 use App\Services\AuthService;
 use Illuminate\Http\JsonResponse;
+use Exception;
 
 class RegisterController extends Controller
 {
+    /**
+     * @throws Exception
+     */
     public function __invoke(RegisterRequest $request, AuthService $authService): JsonResponse
     {
-        return $authService->register($request);
+        return response()->json([
+            'token' => $authService->register($request),
+        ]);
     }
 }

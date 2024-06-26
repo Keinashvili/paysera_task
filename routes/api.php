@@ -4,12 +4,9 @@ declare(strict_types=1);
 
 use Illuminate\Support\Facades\Route;
 
-Route::middleware('guest')
-    ->group(
-        fn() => require_once __DIR__ . '/./auth.php'
-    );
+require_once __DIR__ . '/./auth.php';
 
-Route::middleware('api')
+Route::middleware('auth:api')
     ->group(
         fn() => require_once __DIR__ . '/./products.php'
     );
